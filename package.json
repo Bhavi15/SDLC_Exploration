@@ -71,9 +71,9 @@
   },
   "scripts": {
     "vscode:prepublish": "npm run package",
-    "compile": "webpack --mode development",
-    "watch": "webpack --mode development --watch",
-    "package": "webpack --mode production --devtool hidden-source-map",
+    "compile": "node esbuild.mjs --dev",
+    "watch": "node esbuild.mjs --dev --watch",
+    "package": "node esbuild.mjs",
     "lint": "eslint src --ext ts"
   },
   "dependencies": {
@@ -87,11 +87,8 @@
     "@types/vscode": "^1.90.0",
     "@typescript-eslint/eslint-plugin": "^7.13.0",
     "@typescript-eslint/parser": "^7.13.0",
-    "copy-webpack-plugin": "^12.0.2",
+    "esbuild": "^0.24.0",
     "eslint": "^8.57.0",
-    "ts-loader": "^9.5.1",
-    "typescript": "^5.5.2",
-    "webpack": "^5.92.0",
-    "webpack-cli": "^5.1.4"
+    "typescript": "^5.5.2"
   }
 }
