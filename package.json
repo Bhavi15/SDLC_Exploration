@@ -1,0 +1,97 @@
+{
+  "name": "figma-code",
+  "displayName": "SDLC (Copilot Pipeline)",
+  "description": "Convert design files to production code using VS Code Language Model API and a structured knowledge base.",
+  "version": "0.2.0",
+  "publisher": "local",
+  "engines": {
+    "vscode": "^1.90.0"
+  },
+  "categories": [
+    "Other"
+  ],
+  "activationEvents": [
+    "onStartupFinished"
+  ],
+  "main": "./dist/extension.js",
+  "contributes": {
+    "commands": [
+      {
+        "command": "figmaCode.openPanel",
+        "title": "SDLC: Open Pipeline Panel"
+      },
+      {
+        "command": "figmaCode.refreshKb",
+        "title": "SDLC: Refresh Knowledge Base"
+      }
+    ],
+    "views": {
+      "figmaCode": [
+        {
+          "id": "figmaCode.knowledgeBase",
+          "name": "Knowledge Base",
+          "when": "true"
+        }
+      ]
+    },
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "figmaCode",
+          "title": "SDLC",
+          "icon": "media/icon.svg"
+        }
+      ]
+    },
+    "configuration": {
+      "title": "SDLC",
+      "properties": {
+        "figmaCode.knowledgeBaseFolder": {
+          "type": "string",
+          "default": ".figma-code/knowledge-base",
+          "description": "Workspace-relative folder for processed KB markdown files."
+        },
+        "figmaCode.kbInboxFolder": {
+          "type": "string",
+          "default": ".figma-code/kb-inbox",
+          "description": "Workspace-relative folder for raw uploaded sources before processing."
+        },
+        "figmaCode.outputFolder": {
+          "type": "string",
+          "default": ".figma-code/generated",
+          "description": "Workspace-relative folder for generated project files."
+        },
+        "figmaCode.rawSourcesFolder": {
+          "type": "string",
+          "default": ".figma-code/raw-sources",
+          "description": "Workspace-relative folder where original uploaded files are preserved after KB processing."
+        }
+      }
+    }
+  },
+  "scripts": {
+    "vscode:prepublish": "npm run package",
+    "compile": "webpack --mode development",
+    "watch": "webpack --mode development --watch",
+    "package": "webpack --mode production --devtool hidden-source-map",
+    "lint": "eslint src --ext ts"
+  },
+  "dependencies": {
+    "gray-matter": "^4.0.3",
+    "handlebars": "^4.7.8",
+    "mammoth": "^1.8.0",
+    "pdfjs-dist": "^4.8.69"
+  },
+  "devDependencies": {
+    "@types/node": "^20.14.0",
+    "@types/vscode": "^1.90.0",
+    "@typescript-eslint/eslint-plugin": "^7.13.0",
+    "@typescript-eslint/parser": "^7.13.0",
+    "copy-webpack-plugin": "^12.0.2",
+    "eslint": "^8.57.0",
+    "ts-loader": "^9.5.1",
+    "typescript": "^5.5.2",
+    "webpack": "^5.92.0",
+    "webpack-cli": "^5.1.4"
+  }
+}
