@@ -172,7 +172,7 @@ src/
 
 <div align="center">
 
-*No RAG. No embeddings. No external APIs. Just Copilot, TypeScript, and well-engineered prompts.*
+*RAG. No embeddings. No external APIs. Just Copilot, TypeScript, and well-engineered prompts.*
 
 <br />
 
