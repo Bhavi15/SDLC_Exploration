@@ -14,10 +14,6 @@ export interface GenerationResult {
   files: GeneratedFile[];
 }
 
-/**
- * Generate a complete project from KB context + user prompt.
- * Writes all files to outputDir and returns the result.
- */
 export async function generateProject(params: {
   model: vscode.LanguageModelChat;
   kbDir: string;
@@ -33,20 +29,13 @@ export async function generateProject(params: {
   const { model, kbDir, outputDir, prompt, imageBase64, imageMime, token, onProgress, onStream, onRetrieval } = params;
 
   onProgress?.('Retrieving relevant knowledge base context...');
-  const retrieval = await retrieveContext({
-    kbDir,
-    prompt,
-    imageName: imageBase64 ? 'attached-design-image' : undefined,
-    model,
-    token,
-  });
+  const retrieval = await retrieveContext({ kbDir, prompt, imageName: imageBase64 ? 'attached-design-image' : undefined, model, token });
   const context = retrieval.context;
 
   if (!context && !imageBase64) {
     throw new Error('Nothing to generate from. Add files to the KB first, or attach a design image.');
   }
 
-  // Fire the structured retrieval callback before starting generation
   onRetrieval?.(retrieval);
 
   if (retrieval.matched.length > 0) {
@@ -76,9 +65,7 @@ export async function generateProject(params: {
       if (errMsg.includes('media type') || errMsg.includes('image') || errMsg.includes('400')) {
         onProgress?.('Selected model does not support images. Generating from KB + prompt only...');
         raw = await callLLM(model, [textPart], token, onStream);
-      } else {
-        throw err;
-      }
+      } else { throw err; }
     }
   } else {
     raw = await callLLM(model, [textPart], token, onStream);
@@ -94,7 +81,6 @@ export async function generateProject(params: {
 
   onProgress?.(`Writing ${result.files.length} files...`);
   await fs.mkdir(outputDir, { recursive: true });
-
   for (const file of result.files) {
     const normalized = path.normalize(file.path).replace(/^(\.\.(\/|\\|$))+/, '');
     const outPath = path.join(outputDir, normalized);
@@ -106,41 +92,16 @@ export async function generateProject(params: {
   return result;
 }
 
-/**
- * Parse the delimiter-based output format emitted by the generate prompt.
- *
- * Format:
- *   FRAMEWORK: <name>
- *
- *   === FILE: <path> ===
- *   <content>
- *
- *   === FILE: <path> ===
- *   <content>
- *
- * This format avoids JSON escaping failures for code containing backslashes,
- * quotes, template literals, and regex patterns.
- *
- * The parser is deliberately lenient: it will recover files even if the model
- * wraps the whole response in a markdown fence, prepends prose, or forgets the
- * FRAMEWORK line.
- */
 export function parseDelimitedOutput(raw: string): GenerationResult {
   let text = raw.trim();
-
-  // Strip an outer markdown fence if the model wrapped the whole response
   const fenceMatch = text.match(/^```[a-zA-Z0-9_-]*\n([\s\S]*?)\n```\s*$/);
   if (fenceMatch) { text = fenceMatch[1].trim(); }
 
-  // Extract framework (first FRAMEWORK: line anywhere in the output)
   let framework = 'unknown';
   const fwMatch = text.match(/^\s*FRAMEWORK:\s*([a-zA-Z0-9_.+-]+)/m);
   if (fwMatch) { framework = fwMatch[1].toLowerCase(); }
 
-  // Split on file delimiters. Pattern tolerates extra whitespace and
-  // optional surrounding fences on the delimiter line itself.
   const delimiter = /(?:^|\n)[ \t]*=+[ \t]*FILE:[ \t]*([^\n=]+?)[ \t]*=+[ \t]*(?=\n|$)/g;
-
   const files: GeneratedFile[] = [];
   const matches: Array<{ path: string; start: number; end: number }> = [];
 
@@ -152,18 +113,10 @@ export function parseDelimitedOutput(raw: string): GenerationResult {
   for (let i = 0; i < matches.length; i++) {
     const { path: filePath, end } = matches[i];
     const nextStart = i + 1 < matches.length ? matches[i + 1].start : text.length;
-    let content = text.slice(end, nextStart);
-
-    // Strip leading/trailing single blank line introduced by the delimiter
-    content = content.replace(/^\n/, '').replace(/\n$/, '');
-
-    // If the whole file body is wrapped in a ``` fence, strip it
+    let content = text.slice(end, nextStart).replace(/^\n/, '').replace(/\n$/, '');
     const innerFence = content.match(/^```[a-zA-Z0-9_-]*\n([\s\S]*?)\n```\s*$/);
     if (innerFence) { content = innerFence[1]; }
-
-    if (filePath) {
-      files.push({ path: filePath, content });
-    }
+    if (filePath) { files.push({ path: filePath, content }); }
   }
 
   return { framework, files };

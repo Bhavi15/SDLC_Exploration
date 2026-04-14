@@ -135,7 +135,6 @@ function assessQuality(params: {
 }
 
 // ── KB Processor ────────────────────────────────────────────
-// Inspired by llm.txt: produce ONE comprehensive knowledge file per source.
 
 export async function processKbFile(params: {
   model: vscode.LanguageModelChat;

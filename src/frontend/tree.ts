@@ -1,6 +1,6 @@
 import * as vscode from 'vscode';
 import * as path from 'path';
-import { listKbFiles } from '../kb/index';
+import { listKbFiles } from '../backend/kb/index';
 
 class KbFileItem extends vscode.TreeItem {
   constructor(
@@ -27,13 +27,9 @@ export class KbTreeProvider implements vscode.TreeDataProvider<KbFileItem> {
     this.kbDir = path.join(workspaceRoot, cfg.get<string>('knowledgeBaseFolder', '.figma-code/knowledge-base'));
   }
 
-  refresh() {
-    this._onDidChangeTreeData.fire(undefined);
-  }
+  refresh() { this._onDidChangeTreeData.fire(undefined); }
 
-  getTreeItem(el: KbFileItem): vscode.TreeItem {
-    return el;
-  }
+  getTreeItem(el: KbFileItem): vscode.TreeItem { return el; }
 
   async getChildren(el?: KbFileItem): Promise<KbFileItem[]> {
     const dir = el ? el.filePath : this.kbDir;

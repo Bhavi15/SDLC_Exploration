@@ -54,5 +54,20 @@ export async function extractFile(absPath: string): Promise<ExtractedContent> {
     return { kind: 'image', mime: guessMime(ext), base64: buf.toString('base64') };
   }
 
+  // Excel files — extract text representation
+  if (ext === '.xlsx' || ext === '.xls') {
+    const XLSX = await import('xlsx');
+    const wb = XLSX.read(buf, { type: 'buffer' });
+    let text = '';
+    for (const sheetName of wb.SheetNames) {
+      text += `## Sheet: ${sheetName}\n`;
+      text += XLSX.utils.sheet_to_csv(wb.Sheets[sheetName]) + '\n\n';
+    }
+    return { kind: 'text', text: text.trim() };
+  }
+
   throw new Error(`Unsupported file type: ${ext}`);
 }
+
+/** Alias used by BA/QA modules — same function, friendlier name. */
+export const extractContent = extractFile;
